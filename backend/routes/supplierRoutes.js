@@ -2,15 +2,6 @@ const express = require('express');
 const Supplier = require('../models/supplier');
 const router = express.Router();
 
-// Route to get all suppliers
-// router.get('/suppliers', async (req, res) => {
-//   try {
-//     const suppliers = await Supplier.find();
-//     res.json(suppliers);
-//   } catch (err) {
-//     res.status(500).json({ message: 'Failed to fetch suppliers', error: err.message });
-//   }
-// });
 
 router.get('/suppliers', async (req, res) => {
   const { search } = req.query; // Get the search query from the request
