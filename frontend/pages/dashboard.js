@@ -46,7 +46,7 @@ const Dashboard = () => {
           </Link>
           <Link href="/suppliers">
             <div className="block text-center bg-blue-500 text-white p-4 rounded-lg hover:bg-blue-600">
-            suppliers
+            Suppliers
             </div>
           </Link>
           <Link href="/employees">
