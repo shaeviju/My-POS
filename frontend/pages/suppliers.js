@@ -7,12 +7,15 @@ const SuppliersPage = () => {
     name: '',
     address: '',
     contactNo: '',
-    email: ''
+    email: '',
+    description: '' // Add description field here
   });
   const [isEditing, setIsEditing] = useState(false);
   const [activeTab, setActiveTab] = useState('view'); // 'view' or 'add'
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // For delete confirmation
+  const [supplierToDelete, setSupplierToDelete] = useState(null); // Store supplier id to delete
 
   // Fetch suppliers when the component mounts
   useEffect(() => {
@@ -37,7 +40,7 @@ const SuppliersPage = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!currentSupplier.name || !currentSupplier.address || !currentSupplier.contactNo || !currentSupplier.email) {
+    if (!currentSupplier.name || !currentSupplier.address || !currentSupplier.contactNo || !currentSupplier.email || !currentSupplier.description) {
       setError('All fields are required');
       return;
     }
@@ -53,7 +56,7 @@ const SuppliersPage = () => {
         setSuccess('Supplier added successfully');
       }
 
-      setCurrentSupplier({ name: '', address: '', contactNo: '', email: '' });
+      setCurrentSupplier({ name: '', address: '', contactNo: '', email: '', description: '' });
       setIsEditing(false);
 
       // Re-fetch the supplier list
@@ -72,18 +75,34 @@ const SuppliersPage = () => {
     setCurrentSupplier(supplier);
   };
 
+  // Handle delete confirmation
+  const handleDeleteConfirmation = (supplierId) => {
+    setShowDeleteConfirmation(true);
+    setSupplierToDelete(supplierId); // Store supplier id to delete
+  };
+
   // Handle deleting a supplier
-  const handleDelete = async (id) => {
+  const handleDelete = async () => {
     try {
-      await axios.delete(`http://localhost:5000/api/suppliers/${id}`);
+      await axios.delete(`http://localhost:5000/api/suppliers/${supplierToDelete}`);
       setSuccess('Supplier deleted successfully');
 
       // Re-fetch the supplier list
       const { data } = await axios.get('http://localhost:5000/api/suppliers');
       setSuppliers(data);
+
+      // Close confirmation dialog
+      setShowDeleteConfirmation(false);
+      setSupplierToDelete(null);
     } catch (err) {
       setError('Failed to delete supplier');
     }
+  };
+
+  // Cancel delete
+  const cancelDelete = () => {
+    setShowDeleteConfirmation(false);
+    setSupplierToDelete(null);
   };
 
   return (
@@ -122,6 +141,7 @@ const SuppliersPage = () => {
                 <th className="px-4 py-2 text-left">Address</th>
                 <th className="px-4 py-2 text-left">Contact No</th>
                 <th className="px-4 py-2 text-left">Email</th>
+                <th className="px-4 py-2 text-left">Description</th>
                 <th className="px-4 py-2 text-left">Actions</th>
               </tr>
             </thead>
@@ -132,6 +152,7 @@ const SuppliersPage = () => {
                   <td className="px-4 py-2">{supplier.address}</td>
                   <td className="px-4 py-2">{supplier.contactNo}</td>
                   <td className="px-4 py-2">{supplier.email}</td>
+                  <td className="px-4 py-2">{supplier.description}</td>
                   <td className="px-4 py-2 space-x-2">
                     <button
                       onClick={() => handleEdit(supplier)}
@@ -140,7 +161,7 @@ const SuppliersPage = () => {
                       Edit
                     </button>
                     <button
-                      onClick={() => handleDelete(supplier._id)}
+                      onClick={() => handleDeleteConfirmation(supplier._id)}
                       className="px-3 py-1 bg-red-500 text-white rounded-lg hover:bg-red-600"
                     >
                       Delete
@@ -206,6 +227,17 @@ const SuppliersPage = () => {
                 required
               />
             </div>
+            <div>
+              <label htmlFor="description" className="block text-sm font-medium text-gray-700">Description</label>
+              <textarea
+                name="description"
+                id="description"
+                value={currentSupplier.description}
+                onChange={handleInputChange}
+                className="mt-1 block w-full px-4 py-2 border rounded-lg shadow-sm"
+                required
+              />
+            </div>
             <button
               type="submit"
               className="w-full bg-blue-600 text-white py-2 rounded-lg hover:bg-blue-700"
@@ -213,6 +245,29 @@ const SuppliersPage = () => {
               {isEditing ? 'Update Supplier' : 'Add Supplier'}
             </button>
           </form>
+        </div>
+      )}
+
+      {/* Delete Confirmation Modal */}
+      {showDeleteConfirmation && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex justify-center items-center">
+          <div className="bg-white p-6 rounded-lg shadow-md">
+            <p className="text-lg">Are you sure you want to delete this supplier?</p>
+            <div className="mt-4 flex space-x-4">
+              <button
+                onClick={handleDelete}
+                className="px-4 py-2 bg-red-500 text-white rounded-lg hover:bg-red-600"
+              >
+                Yes, Delete
+              </button>
+              <button
+                onClick={cancelDelete}
+                className="px-4 py-2 bg-gray-500 text-white rounded-lg hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
         </div>
       )}
     </div>

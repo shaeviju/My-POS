@@ -14,13 +14,14 @@ router.get('/suppliers', async (req, res) => {
 
 // Route to add a new supplier
 router.post('/suppliers', async (req, res) => {
-  const { name, address, contactNo, email } = req.body;
+  const { name, address, contactNo, email ,description} = req.body;
 
   const newSupplier = new Supplier({
     name,
     address,
     contactNo,
     email,
+    description
   });
 
   try {
@@ -43,12 +44,12 @@ router.delete('/suppliers/:id', async (req, res) => {
 
 // Route to update a supplier
 router.put('/suppliers/:id', async (req, res) => {
-  const { name, address, contactNo, email } = req.body;
+  const { name, address, contactNo, email ,description  } = req.body;
   
   try {
     const supplier = await Supplier.findByIdAndUpdate(
       req.params.id,
-      { name, address, contactNo, email },
+      { name, address, contactNo, email, description },
       { new: true }
     );
     res.status(200).json(supplier);
