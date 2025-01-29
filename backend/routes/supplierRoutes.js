@@ -3,9 +3,32 @@ const Supplier = require('../models/supplier');
 const router = express.Router();
 
 // Route to get all suppliers
+// router.get('/suppliers', async (req, res) => {
+//   try {
+//     const suppliers = await Supplier.find();
+//     res.json(suppliers);
+//   } catch (err) {
+//     res.status(500).json({ message: 'Failed to fetch suppliers', error: err.message });
+//   }
+// });
+
 router.get('/suppliers', async (req, res) => {
+  const { search } = req.query; // Get the search query from the request
+
   try {
-    const suppliers = await Supplier.find();
+    // If a search query exists, apply it using regex (case-insensitive)
+    const suppliers = search
+      ? await Supplier.find({
+          $or: [
+            { name: { $regex: search, $options: 'i' } },
+            { address: { $regex: search, $options: 'i' } },
+            { contactNo: { $regex: search, $options: 'i' } },
+            { email: { $regex: search, $options: 'i' } },
+            { description: { $regex: search, $options: 'i' } },
+          ],
+        })
+      : await Supplier.find(); // If no search query, return all suppliers
+
     res.json(suppliers);
   } catch (err) {
     res.status(500).json({ message: 'Failed to fetch suppliers', error: err.message });
@@ -57,5 +80,7 @@ router.put('/suppliers/:id', async (req, res) => {
     res.status(500).json({ message: 'Failed to update supplier', error: err.message });
   }
 });
+
+
 
 module.exports = router;

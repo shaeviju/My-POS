@@ -8,27 +8,29 @@ const SuppliersPage = () => {
     address: '',
     contactNo: '',
     email: '',
-    description: '' // Add description field here
+    description: ''
   });
   const [isEditing, setIsEditing] = useState(false);
-  const [activeTab, setActiveTab] = useState('view'); // 'view' or 'add'
+  const [activeTab, setActiveTab] = useState('view');
   const [success, setSuccess] = useState('');
   const [error, setError] = useState('');
-  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false); // For delete confirmation
-  const [supplierToDelete, setSupplierToDelete] = useState(null); // Store supplier id to delete
+  const [searchQuery, setSearchQuery] = useState('');
+  const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
+  const [supplierToDelete, setSupplierToDelete] = useState(null);
 
-  // Fetch suppliers when the component mounts
+  // Fetch suppliers when the component mounts or when search query changes
   useEffect(() => {
     const fetchSuppliers = async () => {
       try {
-        const { data } = await axios.get('http://localhost:5000/api/suppliers');
+        // Send search query to the backend
+        const { data } = await axios.get(`http://localhost:5000/api/suppliers?search=${searchQuery}`);
         setSuppliers(data);
       } catch (err) {
         console.error('Error fetching suppliers:', err);
       }
     };
     fetchSuppliers();
-  }, []);
+  }, [searchQuery]); // Re-fetch when searchQuery changes
 
   // Handle form input changes
   const handleInputChange = (e) => {
@@ -47,11 +49,9 @@ const SuppliersPage = () => {
 
     try {
       if (isEditing) {
-        // Update supplier
         await axios.put(`http://localhost:5000/api/suppliers/${currentSupplier._id}`, currentSupplier);
         setSuccess('Supplier updated successfully');
       } else {
-        // Add new supplier
         await axios.post('http://localhost:5000/api/suppliers', currentSupplier);
         setSuccess('Supplier added successfully');
       }
@@ -60,7 +60,7 @@ const SuppliersPage = () => {
       setIsEditing(false);
 
       // Re-fetch the supplier list
-      const { data } = await axios.get('http://localhost:5000/api/suppliers');
+      const { data } = await axios.get(`http://localhost:5000/api/suppliers?search=${searchQuery}`);
       setSuppliers(data);
     } catch (err) {
       setError('Failed to save supplier');
@@ -78,7 +78,7 @@ const SuppliersPage = () => {
   // Handle delete confirmation
   const handleDeleteConfirmation = (supplierId) => {
     setShowDeleteConfirmation(true);
-    setSupplierToDelete(supplierId); // Store supplier id to delete
+    setSupplierToDelete(supplierId);
   };
 
   // Handle deleting a supplier
@@ -88,10 +88,9 @@ const SuppliersPage = () => {
       setSuccess('Supplier deleted successfully');
 
       // Re-fetch the supplier list
-      const { data } = await axios.get('http://localhost:5000/api/suppliers');
+      const { data } = await axios.get(`http://localhost:5000/api/suppliers?search=${searchQuery}`);
       setSuppliers(data);
 
-      // Close confirmation dialog
       setShowDeleteConfirmation(false);
       setSupplierToDelete(null);
     } catch (err) {
@@ -107,24 +106,35 @@ const SuppliersPage = () => {
 
   return (
     <div className="max-w-6xl mx-auto p-6">
-      <div className="flex justify-center space-x-4 mb-6">
+      {/* Search Input */}
+      <div className="flex justify-between mb-6">
+        <input
+          type="text"
+          placeholder="Search suppliers..."
+          value={searchQuery}
+          onChange={(e) => setSearchQuery(e.target.value)}
+          className="px-4 py-2 border rounded-lg w-1/3"
+        />
+
         {/* Tab Navigation */}
-        <button
-          onClick={() => setActiveTab('view')}
-          className={`px-6 py-2 text-lg font-medium rounded-lg focus:outline-none ${
-            activeTab === 'view' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          View Suppliers
-        </button>
-        <button
-          onClick={() => setActiveTab('add')}
-          className={`px-6 py-2 text-lg font-medium rounded-lg focus:outline-none ${
-            activeTab === 'add' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
-          }`}
-        >
-          {isEditing ? 'Edit Supplier' : 'Add Supplier'}
-        </button>
+        <div className="space-x-4">
+          <button
+            onClick={() => setActiveTab('view')}
+            className={`px-6 py-2 text-lg font-medium rounded-lg focus:outline-none ${
+              activeTab === 'view' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            View Suppliers
+          </button>
+          <button
+            onClick={() => setActiveTab('add')}
+            className={`px-6 py-2 text-lg font-medium rounded-lg focus:outline-none ${
+              activeTab === 'add' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-700'
+            }`}
+          >
+            {isEditing ? 'Edit Supplier' : 'Add Supplier'}
+          </button>
+        </div>
       </div>
 
       {success && <p className="text-green-500 text-center">{success}</p>}
