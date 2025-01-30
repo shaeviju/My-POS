@@ -1,21 +1,25 @@
-// routes/invoiceRoutes.js
 const express = require('express');
-const Invoice = require('../models/invoice');
+const { Invoice, InvoiceSequence } = require('../models/invoice');
 const Customer = require('../models/customer');
 const Product = require('../models/product');
-const router = express.Router();
+const router = express.Router(); 
 
 // Helper function to generate invoice number
 const generateInvoiceNo = async () => {
-  const date = new Date();
-  const dateStr = date.toISOString().split('T')[0]; // Format the date as YYYY-MM-DD
+  const today = new Date();
+  const dateStr = today.toISOString().split('T')[0].replace(/-/g, ''); // Format the date as YYYYMMDD
   
-  // Get the count of invoices for today
-  const count = await Invoice.countDocuments({ date: { $gte: new Date(dateStr) } });
-  
-  // Generate a unique invoice number in the format YYYY-MM-DD-001
-  const invoiceNo = `${dateStr}-${count + 1}`;
-  return invoiceNo;
+  // Find or create a sequence for today
+  let invoiceSequence = await InvoiceSequence.findOne({ date: { $gte: today.setHours(0, 0, 0, 0) } });
+  if (!invoiceSequence) {
+    invoiceSequence = new InvoiceSequence({ date: today, sequence: 1 });
+    await invoiceSequence.save();
+  } else {
+    invoiceSequence.sequence += 1; // Increment sequence for the day
+    await invoiceSequence.save();
+  }
+
+  return `${dateStr}${invoiceSequence.sequence.toString().padStart(3, '0')}`; // Generate a unique invoice number like YYYYMMDD001
 };
 
 // Route to create a new invoice
@@ -32,7 +36,7 @@ router.post('/invoices', async (req, res) => {
       return res.status(400).json({ message: 'Customer not found' });
     }
 
-    // Validate the products
+    // Validate the products and calculate subtotal for each product
     const productDetails = [];
     let grandTotal = 0;
     for (const item of products) {
@@ -46,7 +50,7 @@ router.post('/invoices', async (req, res) => {
         productId: product._id,
         quantity: item.quantity,
         sellingPrice: item.sellingPrice,
-        subtotal: subtotal
+        subtotal: subtotal,
       });
       grandTotal += subtotal;
     }
@@ -54,7 +58,7 @@ router.post('/invoices', async (req, res) => {
     // Create the invoice
     const newInvoice = new Invoice({
       invoiceNo: invoiceNo,
-      customer: customerId,
+      customerId: customerId,
       products: productDetails,
       totalAmount: grandTotal,
     });

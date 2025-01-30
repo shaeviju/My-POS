@@ -13,6 +13,7 @@ const SalesPage = () => {
   const [grandTotal, setGrandTotal] = useState(0);
   const [customerAddress, setCustomerAddress] = useState('');
   const [notification, setNotification] = useState(null);
+  const [invoiceNo, setInvoiceNo] = useState(''); // Invoice number state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
 
@@ -103,15 +104,16 @@ const SalesPage = () => {
 
     // Add customer details
     doc.setFontSize(12);
-    doc.text(`Customer: ${customers.find(c => c._id === selectedCustomer)?.nameOwner}`, 20, 40);
-    doc.text(`Business Name: ${customers.find(c => c._id === selectedCustomer)?.nameBusiness}`, 20, 50);
-    doc.text(`Address: ${customerAddress}`, 20, 60);
+    doc.text(`Invoice No: ${invoiceNo}`, 20, 40); // Ensure the invoice number is printed here
+    doc.text(`Customer: ${customers.find(c => c._id === selectedCustomer)?.nameOwner}`, 20, 50);
+    doc.text(`Business Name: ${customers.find(c => c._id === selectedCustomer)?.nameBusiness}`, 20, 60);
+    doc.text(`Address: ${customerAddress}`, 20, 70);
 
     // Add table for products
-    const startY = 70;
+    const startY = 80;
     doc.text('Product Name', 20, startY);
     doc.text('Quantity', 80, startY);
-    doc.text('Selling Price', 120, startY);
+    doc.text('Unit Price', 120, startY);
     doc.text('Subtotal', 160, startY);
 
     let y = startY + 10;
@@ -128,6 +130,23 @@ const SalesPage = () => {
 
     // Save the PDF
     doc.save('invoice.pdf');
+  };
+
+  // Confirm and Save Invoice
+  const handleConfirmAndSave = async () => {
+    try {
+      const invoiceData = {
+        customerId: selectedCustomer,
+        products: cart,
+      };
+
+      const response = await axios.post('http://localhost:5000/api/invoices', invoiceData);
+      setInvoiceNo(response.data.invoiceNo); // Set the generated invoice number from backend response
+      alert('Invoice Created Successfully!');
+    } catch (error) {
+      console.error('Error saving invoice:', error);
+      alert('Error: Could not save invoice');
+    }
   };
 
   return (
@@ -234,6 +253,11 @@ const SalesPage = () => {
           {/* Grand Total */}
           <div className="mt-4">
             <p><strong>Grand Total: </strong>{grandTotal}</p>
+          </div>
+
+          {/* Confirm and Save Invoice Button */}
+          <div className="mt-4">
+            <button onClick={handleConfirmAndSave} className="bg-blue-600 text-white p-2 rounded-lg">Confirm and Save Invoice</button>
           </div>
 
           {/* Download PDF Button */}
