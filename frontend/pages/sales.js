@@ -16,6 +16,7 @@ const SalesPage = () => {
   const [invoiceNo, setInvoiceNo] = useState(''); // Invoice number state
   const [showDeleteConfirmation, setShowDeleteConfirmation] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const [invoiceGenerated, setInvoiceGenerated] = useState(false); // Track if invoice is generated
 
   // For the invoice printing functionality
   const invoiceRef = useRef();
@@ -133,7 +134,7 @@ const SalesPage = () => {
   };
 
   // Confirm and Save Invoice
-  const handleConfirmAndSave = async () => {
+  const handleConfirmAndPrint = async () => {
     try {
       const invoiceData = {
         customerId: selectedCustomer,
@@ -142,7 +143,21 @@ const SalesPage = () => {
 
       const response = await axios.post('http://localhost:5000/api/invoices', invoiceData);
       setInvoiceNo(response.data.invoiceNo); // Set the generated invoice number from backend response
+      setInvoiceGenerated(true); // Disable the button and show invoice number message
       alert('Invoice Created Successfully!');
+      handleDownloadPDF(); // Immediately print the invoice PDF after saving
+
+      // Clear cart after printing
+      setCart([]);
+
+      // Reset form after printing
+      setSelectedCustomer('');
+      setSelectedProduct('');
+      setQuantity(1);
+      setGrandTotal(0);
+      setCustomerAddress('');
+      setInvoiceNo('');
+      setInvoiceGenerated(false); // Reset invoice generated state
     } catch (error) {
       console.error('Error saving invoice:', error);
       alert('Error: Could not save invoice');
@@ -257,12 +272,11 @@ const SalesPage = () => {
 
           {/* Confirm and Save Invoice Button */}
           <div className="mt-4">
-            <button onClick={handleConfirmAndSave} className="bg-blue-600 text-white p-2 rounded-lg">Confirm and Save Invoice</button>
-          </div>
-
-          {/* Download PDF Button */}
-          <div className="mt-4">
-            <button onClick={handleDownloadPDF} className="bg-blue-600 text-white p-2 rounded-lg">Download PDF Invoice</button>
+            <button onClick={handleConfirmAndPrint} 
+                    className="bg-blue-600 text-white p-2 rounded-lg" 
+                    disabled={invoiceGenerated}> 
+              {invoiceGenerated ? `Invoice no ${invoiceNo} Generated` : 'Confirm and Print Invoice'}
+            </button>
           </div>
         </div>
       )}
