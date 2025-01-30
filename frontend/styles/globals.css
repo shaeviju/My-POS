@@ -1,3 +1,14 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+@media print {
+    .invoice-container {
+      width: 21cm; /* A4 size width */
+      height: 29.7cm; /* A4 size height */
+      margin: 0 auto;
+      padding: 10mm;
+      font-size: 12pt;
+    }
+  }
+  
