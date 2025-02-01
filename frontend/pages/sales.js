@@ -59,11 +59,9 @@ const SalesPage = () => {
 
     setNotification(`Added ${product.productName} to the cart!`);
     setTimeout(() => setNotification(null), 3000);
-  };
 
-  // Calculate Grand Total
-  const handleGetGrandTotal = () => {
-    const newGrandTotal = cart.reduce((acc, item) => acc + item.subtotal, 0);
+    // Update the grand total
+    const newGrandTotal = cart.reduce((acc, item) => acc + item.subtotal, 0) + newProduct.subtotal;
     setGrandTotal(newGrandTotal);
   };
 
@@ -73,6 +71,10 @@ const SalesPage = () => {
     updatedCart[index][field] = value;
     updatedCart[index].subtotal = updatedCart[index].quantity * updatedCart[index].sellingPrice;
     setCart(updatedCart);
+
+    // Recalculate the grand total
+    const total = updatedCart.reduce((acc, item) => acc + item.subtotal, 0);
+    setGrandTotal(total);
   };
 
   // Delete Cart Item
@@ -87,6 +89,10 @@ const SalesPage = () => {
     setCart(updatedCart);
     setShowDeleteConfirmation(false);
     setItemToDelete(null);
+
+    // Recalculate the grand total
+    const total = updatedCart.reduce((acc, item) => acc + item.subtotal, 0);
+    setGrandTotal(total);
   };
 
   // Cancel Deletion
@@ -260,23 +266,21 @@ const SalesPage = () => {
             </tbody>
           </table>
 
-          {/* Get Grand Total Button */}
-          <div className="mt-4">
-            <button onClick={handleGetGrandTotal} className="bg-green-600 text-white p-2 rounded-lg">Get Grand Total</button>
-          </div>
-
-          {/* Grand Total */}
+          {/* Grand Total Display */}
           <div className="mt-4">
             <p><strong>Grand Total: </strong>{grandTotal}</p>
           </div>
 
           {/* Confirm and Save Invoice Button */}
           <div className="mt-4">
-            <button onClick={handleConfirmAndPrint} 
-                    className="bg-blue-600 text-white p-2 rounded-lg" 
-                    disabled={invoiceGenerated}> 
-              {invoiceGenerated ? `Invoice no ${invoiceNo} Generated` : 'Confirm and Print Invoice'}
-            </button>
+            <button  
+  onClick={() => {
+    handleConfirmAndPrint();
+  }}  
+  className="bg-blue-600 text-white p-2 rounded-lg" 
+  disabled={invoiceGenerated}> 
+  {invoiceGenerated ? `Invoice no ${invoiceNo} Generated` : 'Confirm and Print Invoice'}
+</button>
           </div>
         </div>
       )}
