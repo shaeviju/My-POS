@@ -18,9 +18,6 @@ const SalesPage = () => {
   const [itemToDelete, setItemToDelete] = useState(null);
   const [invoiceGenerated, setInvoiceGenerated] = useState(false); // Track if invoice is generated
 
-  // For the invoice printing functionality
-  const invoiceRef = useRef();
-
   // Fetch Customers and Products
   useEffect(() => {
     const fetchData = async () => {
@@ -154,9 +151,10 @@ const SalesPage = () => {
       };
 
       const response = await axios.post('http://localhost:5000/api/invoices', invoiceData);
-      setInvoiceNo(response.data.invoiceNo); // Set the generated invoice number from backend response
+      const generatedInvoiceNo = response.data.invoiceNo; // Set the generated invoice number from backend response
+      setInvoiceNo(generatedInvoiceNo); // Assign invoice number
       setInvoiceGenerated(true); // Disable the button and show invoice number message
-      setNotification({ type: 'success', message: `Invoice Created Successfully! Invoice No: ${response.data.invoiceNo}` });
+      setNotification({ type: 'success', message: `Invoice Created Successfully! Invoice No: ${generatedInvoiceNo}` });
       handleDownloadPDF(); // Immediately print the invoice PDF after saving
 
       setTimeout(() => {
