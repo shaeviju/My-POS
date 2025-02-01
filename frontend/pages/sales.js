@@ -264,8 +264,22 @@ const SalesPage = () => {
               {cart.map((item, index) => (
                 <tr key={index}>
                   <td className="border px-4 py-2">{item.productName}</td>
-                  <td className="border px-4 py-2">{item.quantity}</td>
-                  <td className="border px-4 py-2">{item.sellingPrice}</td>
+                  <td className="border px-4 py-2">
+                    <input
+                      type="number"
+                      value={item.quantity}
+                      onChange={(e) => handleEditCartItem(index, 'quantity', e.target.value)}
+                      className="w-20 p-1 border rounded"
+                    />
+                  </td>
+                  <td className="border px-4 py-2">
+                    <input
+                      type="number"
+                      value={item.sellingPrice}
+                      onChange={(e) => handleEditCartItem(index, 'sellingPrice', e.target.value)}
+                      className="w-20 p-1 border rounded"
+                    />
+                  </td>
                   <td className="border px-4 py-2">{item.subtotal}</td>
                   <td className="border px-4 py-2">
                     <button onClick={() => handleDeleteCartItem(index)} className="bg-red-500 text-white p-2 rounded">Delete</button>
