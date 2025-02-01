@@ -57,12 +57,22 @@ const SalesPage = () => {
     };
     setCart([...cart, newProduct]);
 
-    setNotification(`Added ${product.productName} to the cart!`);
-    setTimeout(() => setNotification(null), 3000);
-
     // Update the grand total
-    const newGrandTotal = cart.reduce((acc, item) => acc + item.subtotal, 0) + newProduct.subtotal;
-    setGrandTotal(newGrandTotal);
+    updateGrandTotal([...cart, newProduct]);
+
+    // Show notification that item has been added to the cart
+    setNotification({ type: 'success', message: `Added ${product.productName} to the cart!` });
+
+    // Automatically hide the notification after 3 seconds
+    setTimeout(() => {
+      setNotification(null);
+    }, 3000);
+  };
+
+  // Update Grand Total
+  const updateGrandTotal = (cartItems) => {
+    const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+    setGrandTotal(total);
   };
 
   // Edit Cart Item (Quantity or Selling Price)
@@ -72,9 +82,7 @@ const SalesPage = () => {
     updatedCart[index].subtotal = updatedCart[index].quantity * updatedCart[index].sellingPrice;
     setCart(updatedCart);
 
-    // Recalculate the grand total
-    const total = updatedCart.reduce((acc, item) => acc + item.subtotal, 0);
-    setGrandTotal(total);
+    updateGrandTotal(updatedCart);
   };
 
   // Delete Cart Item
@@ -90,9 +98,7 @@ const SalesPage = () => {
     setShowDeleteConfirmation(false);
     setItemToDelete(null);
 
-    // Recalculate the grand total
-    const total = updatedCart.reduce((acc, item) => acc + item.subtotal, 0);
-    setGrandTotal(total);
+    updateGrandTotal(updatedCart);
   };
 
   // Cancel Deletion
@@ -150,7 +156,7 @@ const SalesPage = () => {
       const response = await axios.post('http://localhost:5000/api/invoices', invoiceData);
       setInvoiceNo(response.data.invoiceNo); // Set the generated invoice number from backend response
       setInvoiceGenerated(true); // Disable the button and show invoice number message
-      alert('Invoice Created Successfully!');
+      setNotification({ type: 'success', message: `Invoice Created Successfully! Invoice No: ${response.data.invoiceNo}` });
       handleDownloadPDF(); // Immediately print the invoice PDF after saving
 
       // Clear cart after printing
@@ -166,7 +172,7 @@ const SalesPage = () => {
       setInvoiceGenerated(false); // Reset invoice generated state
     } catch (error) {
       console.error('Error saving invoice:', error);
-      alert('Error: Could not save invoice');
+      setNotification({ type: 'error', message: 'Error: Could not save invoice' });
     }
   };
 
@@ -174,8 +180,8 @@ const SalesPage = () => {
     <div className="max-w-6xl mx-auto p-6">
       {/* Notification */}
       {notification && (
-        <div className="fixed top-0 left-1/2 transform -translate-x-1/2 bg-blue-500 text-white p-4 rounded-md shadow-lg">
-          {notification}
+        <div className={`fixed top-0 left-1/2 transform -translate-x-1/2 p-4 rounded-md shadow-lg w-96 ${notification.type === 'success' ? 'bg-green-500 text-white' : 'bg-red-500 text-white'}`}>
+          {notification.message}
         </div>
       )}
 
@@ -274,13 +280,11 @@ const SalesPage = () => {
           {/* Confirm and Save Invoice Button */}
           <div className="mt-4">
             <button  
-  onClick={() => {
-    handleConfirmAndPrint();
-  }}  
-  className="bg-blue-600 text-white p-2 rounded-lg" 
-  disabled={invoiceGenerated}> 
-  {invoiceGenerated ? `Invoice no ${invoiceNo} Generated` : 'Confirm and Print Invoice'}
-</button>
+              onClick={handleConfirmAndPrint}  
+              className="bg-blue-600 text-white p-2 rounded-lg" 
+              disabled={invoiceGenerated}> 
+              {invoiceGenerated ? `Invoice no ${invoiceNo} Generated` : 'Confirm and Print Invoice'}
+            </button>
           </div>
         </div>
       )}
