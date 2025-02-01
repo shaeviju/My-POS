@@ -66,7 +66,7 @@ const SalesPage = () => {
     // Automatically hide the notification after 3 seconds
     setTimeout(() => {
       setNotification(null);
-    }, 3000);
+    }, 1000);
   };
 
   // Update Grand Total
@@ -159,6 +159,9 @@ const SalesPage = () => {
       setNotification({ type: 'success', message: `Invoice Created Successfully! Invoice No: ${response.data.invoiceNo}` });
       handleDownloadPDF(); // Immediately print the invoice PDF after saving
 
+      setTimeout(() => {
+        setNotification(null);
+      }, 1000);
       // Clear cart after printing
       setCart([]);
 
